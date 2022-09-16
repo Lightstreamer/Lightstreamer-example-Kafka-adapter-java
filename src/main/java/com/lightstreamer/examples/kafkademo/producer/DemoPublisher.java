@@ -1,7 +1,10 @@
 package com.lightstreamer.examples.kafkademo.producer;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Future;
@@ -22,6 +25,14 @@ public class DemoPublisher {
 
     private static String kconnstring = "b-2.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092,b-1.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092";
 
+    private static Random random = new Random();
+
+    private static Calendar calendar = Calendar.getInstance();
+
+    private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+
+    private static HashMap<String, Integer> flight_momentum = new HashMap<String, Integer>();
+    
     private static List<String> destinations = Stream.of( "Seoul (ICN)",
     "Atlanta (ATL)",
     "Boston (BOS)",
@@ -43,13 +54,23 @@ public class DemoPublisher {
     "London (LHR)",
     "Malpensa (MXP)").collect(Collectors.toList());
 
-    private static List<String> statusf = Stream.of("Scheduled - On-time",
+    private static List<String> status_desc = Stream.of("Scheduled - On-time",
     "Scheduled - Delayed",
     "En Route - On-time",
     "En Route - Delayed",
     "Landed - On-time",
     "Landed - Delayed",
-    "Cancelled").collect(Collectors.toList());
+    "Cancelled",
+    "Deleted").collect(Collectors.toList());
+
+    private static List<String> status_icon = Stream.of("\uD83C\uDFAB",
+    "⌛",
+    "\uD83D\uDEEB",
+    "\uD83D\uDEEC️",
+    "✅",
+    "\uD83D\uDFE9",
+    "\uD83D\uDED1",
+    "\uD83D\uDED1").collect(Collectors.toList());
 
     private static void kafkaproducerloop() {
         Properties props = new Properties();
@@ -62,17 +83,36 @@ public class DemoPublisher {
             Future<RecordMetadata> futurek;
             RecordMetadata rmtdta;
 
+            calendar.setTime(sdf.parse("07:00"));
+
             Producer<String, String> producer = new KafkaProducer<>(props);
-            for (int i = 0; i < 10; i++) {
-                String message = getrandominfo(i);
+            for (int i = 0; i < 82; i++) {
+                String key;
+
+                if ( flight_momentum.size() < 10 ) {
+                    int tmp = random.nextInt(900) + 10;
+                
+                    key = "LS" + tmp;
+                } else {
+                    int fd = random.nextInt(10);
+                    Iterator<String> itr = flight_momentum.keySet().iterator();
+                    for (int k=0; k < fd; k++) {
+                        itr.next();
+                    }
+                    key = itr.next();
+                }
+
+                String message = getrandominfo(key);
 
                 logger.info("New Message for " + i + ": " + message);
 
-                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", Integer.toString(i), message));
+                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", key, message));
 
                 rmtdta = futurek.get();
 
                 logger.info("Sent message no. " + i + " to " + rmtdta.partition());
+
+                Thread.sleep(500);
             }
             
             producer.close();
@@ -81,19 +121,66 @@ public class DemoPublisher {
             logger.error("Error during producer loop: " + e.getMessage());
         }
     }
-    private static String getrandominfo(int i) {
+
+    private static int nextFlightStatus(int from) {
+        int to = from;
+
+        if (from == 0) {
+            if ( random.nextBoolean() ) {
+                to = 2;
+            } else {
+                to = 1;
+            }
+        } else if (from == 1) {
+            if ( random.nextBoolean() ) {
+                to = 3;
+            } else {
+                to = 6;
+            }
+        } else if (from == 2) {
+            if ( random.nextBoolean() ) {
+                to = 3;
+            } else {
+                to = 4;
+            }
+        } else if (from == 3) {
+            to = 5;
+        } else {
+            // The Flight should be removed by the departures board
+            to = 7;
+        }
+
+        return to;
+    }
+
+    private static String getrandominfo(String key) {
         StringBuilder builder = new StringBuilder();
-        Random random = new Random();
-        int indx = random.nextInt(21);
-        int inds = random.nextInt(7);
-                
-        builder.append(destinations.get(indx))
+        int inds;
+
+        if (flight_momentum.containsKey(key)) {
+            inds = nextFlightStatus(flight_momentum.get(key).intValue());
+        } else {
+            inds = 0;
+        }
+
+        if (inds == 7) {
+            flight_momentum.remove(key);
+        } else {
+            flight_momentum.put(key, Integer.valueOf(inds));
+        }
+
+        int indx = random.nextInt(20);
+        
+        String trmnl = random.nextBoolean() ? "3" : "7";
+        String departure = sdf.format(calendar.getTime());
+        calendar.add(Calendar.MINUTE, 3);
+        builder.append(status_icon.get(inds) + ' ' + destinations.get(indx))
             .append("|")
-            .append("12:30")
+            .append(departure)
             .append("|")
-            .append( Integer.toString(indx))
+            .append(trmnl)
             .append("|")
-            .append( statusf.get(inds))
+            .append( status_desc.get(inds))
             .append("|")
             .append("Lightstreamer Airlines");
 

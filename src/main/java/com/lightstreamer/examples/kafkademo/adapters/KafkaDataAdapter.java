@@ -81,17 +81,26 @@ public class KafkaDataAdapter implements DataProvider {
                     // We have to set the key
                     update.put("key",  record.key());
 
+                    String[] tknz = record.value().split("\\|");
+
                     if ( keys.contains( record.key()) ) {
-                        // The UPDATE command
-                        logger.info("update");
-                        update.put("command", "UPDATE");
+                        if (tknz[3].equalsIgnoreCase("Deleted")) {
+                            // delete
+                            logger.info("delete");
+                            update.put("command", "DELETE");
+                            keys.remove(record.key());
+                        } else {
+                            // UPDATE command
+                            logger.info("update");
+                            update.put("command", "UPDATE");
+                        }
                     } else {            
-                        // The ADD command
+                        // ADD command
                         logger.info("add");
                         update.put("command", "ADD");
                         keys.add(record.key());
                     }
-                    String[] tknz = record.value().split("\\|");
+
                     update.put("destination", tknz[0]);
                     update.put("departure", tknz[1]);
                     update.put("terminal", tknz[2]);
