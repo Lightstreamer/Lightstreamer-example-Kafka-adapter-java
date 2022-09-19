@@ -110,6 +110,10 @@ public class DemoPublisher {
 
                 rmtdta = futurek.get();
 
+                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", "current_time", sdf.format(calendar.getTime())));
+
+                rmtdta = futurek.get();
+
                 logger.info("Sent message no. " + i + " to " + rmtdta.partition());
 
                 Thread.sleep(500);
@@ -172,8 +176,10 @@ public class DemoPublisher {
         int indx = random.nextInt(20);
         
         String trmnl = random.nextBoolean() ? "3" : "7";
-        String departure = sdf.format(calendar.getTime());
+
         calendar.add(Calendar.MINUTE, 3);
+        String departure = sdf.format(calendar.getTime());
+        
         builder.append(status_icon.get(inds) + ' ' + destinations.get(indx))
             .append("|")
             .append(departure)

@@ -17,23 +17,10 @@
 package com.lightstreamer.examples.kafkademo.adapters;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Future;
-
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,103 +38,44 @@ public class KafkaDataAdapter implements DataProvider {
     
     private static ItemEventListener listener;
 
-    private static volatile boolean goconsume = false;
-
     private static List<String> keys = new ArrayList<String>();
 
-    private static String kconnstring = "b-2.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092,b-1.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092";
+    private boolean currtime = false;
 
-    private void kafkaconsumerloop(ItemEventListener listener){
-        Properties props = new Properties();
-        props.setProperty("bootstrap.servers", kconnstring);
-        props.setProperty("group.id", "kafkademo-ls-001");
-        props.setProperty("enable.auto.commit", "true");
-        props.setProperty("auto.commit.interval.ms", "1000");
-        props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+    private static ConsumerLoop consumer;
 
-        try {
-            KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-            consumer.subscribe(Arrays.asList("departuresboard-001"));
-            while (goconsume) {
-                ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(7000));
-                for (ConsumerRecord<String, String> record : records) {
-                    logger.info("offset = " + record.offset() + ", key = " + record.key() + ", value = " + record.value());
-                    // onNewMessage(record.key(), record.value());
-                    
-                    logger.info("onNewMessage: " +  record.key() + " . " + record.value());
+    private String kconnstring = "b-2.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092,b-1.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092";
 
-                    HashMap<String, String> update = new HashMap<String, String>();
-                    // We have to set the key
-                    update.put("key",  record.key());
+    private String kconsumergroupid;
 
-                    String[] tknz = record.value().split("\\|");
+    private String ktopicname;
 
-                    if ( keys.contains( record.key()) ) {
-                        if (tknz[3].equalsIgnoreCase("Deleted")) {
-                            // delete
-                            logger.info("delete");
-                            update.put("command", "DELETE");
-                            keys.remove(record.key());
-                        } else {
-                            // UPDATE command
-                            logger.info("update");
-                            update.put("command", "UPDATE");
-                        }
-                    } else {            
-                        // ADD command
-                        logger.info("add");
-                        update.put("command", "ADD");
-                        keys.add(record.key());
-                    }
+    private static final String KBOOTSTRAPSERVERS = "kafka_bootstrap_servers";
 
-                    update.put("destination", tknz[0]);
-                    update.put("departure", tknz[1]);
-                    update.put("terminal", tknz[2]);
-                    update.put("status", tknz[3]);
-                    update.put("airline", tknz[4]);
+    private static final String KCONSGROUPID = "kafka_consumer_group_id";
 
-                    listener.update("DepartureMonitor", update, false);
-                }  
-                logger.info("wait for new messages");
-            }
-            logger.info("End consumer loop");
-        } catch (Exception e) {
-            logger.error("Error during consumer loop: " + e.getMessage());
-        }
-    }
+    private static final String KTOPIC = "kafka_topic_name";
 
-    private void kafkaproducerloop() {
-        Properties props = new Properties();
-        props.put("bootstrap.servers", kconnstring);
-        props.put("linger.ms", 1);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-        try {
-            Future<RecordMetadata> futurek;
-            RecordMetadata rmtdta;
-
-            Producer<String, String> producer = new KafkaProducer<>(props);
-            for (int i = 0; i < 2; i++) {
-                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", Integer.toString(i), "Test1"+i));
-
-                rmtdta = futurek.get();
-
-                logger.info("Sent message no. " + i + " to " + rmtdta.partition());
-            }
-            
-            producer.close();
-
-        } catch (Exception e) {
-            logger.error("Error during producer loop: " + e.getMessage());
-        }
-    }
 
     @Override
     public void init(Map params, File configDir) throws DataProviderException {
 
-        logger.info("Start initialization of the kafkademo Data adapter ... ");     
+        logger.info("Start initialization of the kafkademo Data adapter ... ");
+
+        if (params.containsKey(KBOOTSTRAPSERVERS)) {
+            logger.info("kafka boostrap servers configured: " + params.get(KBOOTSTRAPSERVERS));
+            this.kconnstring = (String) params.get(KBOOTSTRAPSERVERS);
+        }
+
+        if (params.containsKey(KCONSGROUPID)) {
+            logger.info("kafka consumer group.id configured: " + params.get(KCONSGROUPID));
+            this.kconsumergroupid = (String) params.get(KCONSGROUPID);
+        }
+
+        if (params.containsKey(KTOPIC)) {
+            logger.info("kafka topic name configured: " + params.get(KTOPIC));
+            this.ktopicname = (String) params.get(KTOPIC);
+        }
 
         logger.info("kakfademo Data Adapter initialized.");
     }
@@ -165,15 +93,12 @@ public class KafkaDataAdapter implements DataProvider {
         logger.info("Subscribe for item: " + itemName);
 
         if (itemName.startsWith("DepartureMonitor")) {
-            goconsume = true;
-            Thread t1 = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    logger.info("Start consumer loop " + listener);
-                    kafkaconsumerloop(listener);
-                }
-            });  
-            t1.start();
+            consumer = new ConsumerLoop(this, kconnstring, kconsumergroupid, ktopicname);
+            consumer.start();
+        } else if (itemName.startsWith("CurrTime")) {
+            currtime = true;
+        } else {
+            logger.warn("Requested item not expected.");
         }
         
     }
@@ -182,9 +107,10 @@ public class KafkaDataAdapter implements DataProvider {
     public void unsubscribe(String itemName) throws SubscriptionException, FailureException {
 
         if (itemName.startsWith("DepartureMonitor")) {
-            goconsume = false;
+            consumer.stopconsuming();
+        } else if (itemName.startsWith("CurrTime")) {
+            currtime = false;
         }
-        
     }
 
     @Override
@@ -194,22 +120,33 @@ public class KafkaDataAdapter implements DataProvider {
     }
 
     public static void onNewMessage(String key, String msg) {
-
-        logger.info("onNewMessage: " + key + " . " + msg);
+        
+        logger.info("onNewMessage: " +  key + " . " + msg);
 
         HashMap<String, String> update = new HashMap<String, String>();
         // We have to set the key
-        update.put("key", key);
+        update.put("key",  key);
 
-        if ( keys.contains(key) ) {
-            // The UPDATE command
-            update.put("command", "UPDATE");
+        String[] tknz = msg.split("\\|");
+
+        if ( keys.contains( key) ) {
+            if (tknz[3].equalsIgnoreCase("Deleted")) {
+                // delete
+                logger.info("delete");
+                update.put("command", "DELETE");
+                keys.remove(key);
+            } else {
+                // UPDATE command
+                logger.info("update");
+                update.put("command", "UPDATE");
+            }
         } else {            
-            // The ADD command
+            // ADD command
+            logger.info("add");
             update.put("command", "ADD");
             keys.add(key);
         }
-        String[] tknz = msg.split("|")
+
         update.put("destination", tknz[0]);
         update.put("departure", tknz[1]);
         update.put("terminal", tknz[2]);
@@ -217,6 +154,20 @@ public class KafkaDataAdapter implements DataProvider {
         update.put("airline", tknz[4]);
 
         listener.update("DepartureMonitor", update, false);
+    }
+
+    public void onCurrentTimeUpdate(String time) {
+        
+        logger.info("onCurrentTimeUpdate: " + time);
+
+        if ( this.currtime) {
+            HashMap<String, String> update = new HashMap<String, String>();
+            // We have to set the key
+            update.put("time",  time);
+
+            listener.update("CurrTime", update, false);
+        }
+
     }
 
 }

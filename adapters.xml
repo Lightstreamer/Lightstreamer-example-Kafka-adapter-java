@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<adapters_conf id="KAFKADEMO">
+
+    <metadata_provider>
+		<adapter_class>com.lightstreamer.adapters.metadata.LiteralBasedProvider</adapter_class>
+
+        <!-- Optional.
+             See LiteralBasedProvider javadoc. -->
+        <!--
+        <param name="max_bandwidth">40</param>
+        <param name="max_frequency">3</param>
+        <param name="buffer_size">30</param>
+        <param name="distinct_snapshot_length">10</param>
+        <param name="prefilter_frequency">5</param>
+        <param name="allowed_users">user123,user456</param>
+        -->
+
+        <!-- Optional.
+             See LiteralBasedProvider javadoc. -->
+        <param name="item_family_1">DepartureMonitor.*</param>
+        <param name="modes_for_item_family_1">COMMAND</param>
+
+        <param name="item_family_2">CurrTime.*</param>
+        <param name="modes_for_item_family_2">MERGE</param>
+
+    </metadata_provider>
+    
+    <data_provider>
+	 
+        <adapter_class>com.lightstreamer.examples.kafkademo.adapters.KafkaDataAdapter</adapter_class>
+        
+        <!-- AWS MSK configuration parammeters -->
+        <param name="kafka_bootstrap_servers">b-2.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092,b-1.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092</param>
+        <param name="kafka_consumer_group_id">kafkademo-ls-001</param>
+        <param name="kafka_topic_name">departuresboard-001</param>
+        departuresboard-001
+    </data_provider>
+</adapters_conf>
