@@ -7,7 +7,7 @@ This project includes the resources needed to develop the Data Adapter for the L
 The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.
 The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic; for this demo we used as Kafka service the [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a).
 
-As an example of a client using this adapter, you may refer to the [Lightstreamer - DynamoDB Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript) ... specific section for the Kafka demo.
+This project covers only the back-end side of the demo and in particular the code of a Data Adapter to be deployed into a Lightsreamer server and a random data generator for simulating the departures board. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java#client-to-use-with-this-demo).
 
 ## Details
 
@@ -88,11 +88,6 @@ As a client for this demo you can use the [Lightstreamer - DynamoDB Demo - Web C
  - change in the [src/js/const.js](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript/blob/master/src/js/const.js) file the *LS_ADAPTER_SET* to KAFKADEMO
 
 ## See Also
-
-### Clients Using This Adapter
-<!-- START RELATED_ENTRIES -->
-
-* [Lightstreamer - DynamoDB Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript)
 
 <!-- END RELATED_ENTRIES -->
 
