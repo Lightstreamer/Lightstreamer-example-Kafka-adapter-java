@@ -23,11 +23,15 @@ public class DemoPublisher {
 
     private static Logger logger = LogManager.getLogger("kafkademo-producer");
 
-    private static String kconnstring = "b-2.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092,b-1.democluster1.rw4f0s.c9.kafka.eu-west-1.amazonaws.com:9092";
+    private static String kconnstring; 
+
+    private static boolean go = true;
 
     private static Random random = new Random();
 
     private static Calendar calendar = Calendar.getInstance();
+
+    private static String topicname;
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 
@@ -86,7 +90,8 @@ public class DemoPublisher {
             calendar.setTime(sdf.parse("07:00"));
 
             Producer<String, String> producer = new KafkaProducer<>(props);
-            for (int i = 0; i < 82; i++) {
+
+            while (go) {
                 String key;
 
                 if ( flight_momentum.size() < 10 ) {
@@ -104,22 +109,22 @@ public class DemoPublisher {
 
                 String message = getrandominfo(key);
 
-                logger.info("New Message for " + i + ": " + message);
+                logger.info("New Message : " + message);
 
-                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", key, message));
-
-                rmtdta = futurek.get();
-
-                futurek = producer.send(new ProducerRecord<String, String>("departuresboard-001", "current_time", sdf.format(calendar.getTime())));
+                futurek = producer.send(new ProducerRecord<String, String>(topicname, key, message));
 
                 rmtdta = futurek.get();
 
-                logger.info("Sent message no. " + i + " to " + rmtdta.partition());
+                futurek = producer.send(new ProducerRecord<String, String>(topicname, "current_time", sdf.format(calendar.getTime())));
+
+                rmtdta = futurek.get();
+
+                logger.info("Sent message to" + rmtdta.partition());
 
                 Thread.sleep(500);
             }
             
-            producer.close();
+             producer.close();
 
         } catch (Exception e) {
             logger.error("Error during producer loop: " + e.getMessage());
@@ -194,9 +199,37 @@ public class DemoPublisher {
     }
     public static void main(String[] args) {
         
-        logger.info("Start Kafka demo producer.");
+        logger.info("Start Kafka demo producer: " + args.length);
 
-        kafkaproducerloop();
+        if (args.length < 2 ) {
+            logger.error("Missing arguments bootstrap-servers topioc-name");
+            return ;
+        }
+
+        kconnstring = args[0];
+        topicname = args[1];
+
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                kafkaproducerloop();
+            }
+        });  
+        t1.start();
+        
+        String input = System.console().readLine();
+        while (!input.equalsIgnoreCase("stop")) {
+            input = System.console().readLine();
+        }
+
+        go = false;
+
+        try {
+            Thread.sleep(2000);
+        } catch (Exception e) {
+            // ...
+        }
+        
 
         logger.info("End Kafka demo producer.");
     }
