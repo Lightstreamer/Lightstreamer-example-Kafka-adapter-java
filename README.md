@@ -13,7 +13,7 @@ This project covers only the back-end side of the demo and in particular the cod
 
 The source code of the projects is basically divided into two packages: 
 
-- `producer`, that implements the simulator of flights information and act as the producer versus the Kafka service. In particular the following classes are defined:
+- `producer`, that implements the simulator of flight information and acts as the producer versus the Kafka service. In particular the following classes are defined:
     - `DemoPublisher.java`, implementing the simulator generating and sending flight monitor data to a Kafka topic;
 
 <br>
@@ -25,12 +25,12 @@ The source code of the projects is basically divided into two packages:
 ## Build and Install
 
 To build and install your own version of these adapters you have two options:
-either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and building (recommended) or gather the necessary jars yourself and build it manually.
+either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and build (recommended) or gather the necessary jars yourself and build it manually.
 For the sake of simplicity only the Maven case is detailed here.
 
 ### Maven
 
-You can easily build the adapter jars to de deployed into the Lightstreamer server using Maven through the `pom.xml` file located in the root folder of this project. As an alternative, you can use any other alternative build tool (e.g. Gradle, Ivy, etc.).
+You can easily build the adapter jars to deploy into the Lightstreamer server using Maven through the `pom.xml` file located in the root folder of this project. As an alternative, you can use any other alternative build tool (e.g. Gradle, Ivy, etc.).
 
 Assuming Maven is installed and available in your path you can build the demo by running
 ```sh 
@@ -49,7 +49,7 @@ The demo needs a kafka cluster where a topic with name `departuresboard-001` is 
  - Browse to the MSK create cluster wizard to start the creation 
  - Since the limited needs of the demo, you can choose options for a cluster with only 2 brokers, one per availability zone, and of small size (kafka.t3.small)
  - Choose Unauthenticated access option and allow Plaintext connection
- - We choose a cluster configuration such as the *MSK default configuration* but a single add; since in the demo only actually realt-time events are managed we choose a very short retention time for messages:
+ - We choose a cluster configuration such as the *MSK default configuration* but a single add; since in the demo only actually real-time events are managed we choose a very short retention time for messages:
 
 ```sh 
   log.retention.ms = 2000
@@ -59,16 +59,16 @@ The demo needs a kafka cluster where a topic with name `departuresboard-001` is 
 
 ### Lightstreamer Server
 
- - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from Lightstreamer Download page, and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
+ - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
  - Make sure that Lightstreamer Server is not running.
- - Get the deploy.zip file from the [latest release](), unzip it, and copy the `kafkademo` folder into the `adapters` folder of your Lightstreamer Server installation.
+ - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `kafkademo` folder into the `adapters` folder of your Lightstreamer Server installation.
  - Update the `adapters.xml` file with "kafka_bootstrap_servers" of your cluster created in the previous section; to retrieve this information use the steps below:
     1. Open the Amazon MSK console at https://console.aws.amazon.com/msk/.
     2. Wait for the status of your cluster to become Active. This might take several minutes. After the status becomes Active, choose the cluster name. This takes you to a page containing the cluster summary.
     3. Choose View client information.
     4. Copy the connection string for plaintext authentication.
  - [Optional] Customize the logging settings in log4j configuration file `kafkademo/classes/log4j2.xml`.
- - In order to avoid authentication stuff the machine running the Lightstreamer serve must be in the same vpc of the MSK cluster.
+ - In order to avoid authentication stuff the machine running the Lightstreamer server must be in the same vpc of the MSK cluster.
  - Launch Lightstreamer Server.
 
 ### Simulator Producer loop
@@ -79,7 +79,7 @@ From the `LS_HOME\adapters\kafkademo\lib` folder you can start the simulator pro
   $java -cp example-kafka-adapter-java-0.0.1-SNAPSHOT.jar:kafka-clients-3.2.2.jar:log4j-api-2.18.0.jar:log4j-core-2.18.0.jar:lz4-java-1.8.0.jar:snappy-java-1.1.8.4:slf4j-api-2.0.1.jar com.lightstreamer.examples.kafkademo.producer.DemoPublisher boostrap_server topic_name
 ```
 
-Where *bootstrap_server* is the sam information retrieved in the previous section and topic name is `departuresboard-001`.
+Where *bootstrap_server* is the same information retrieved in the previous section and topic name is `departuresboard-001`.
 
 ### Client to use with this demo
 
