@@ -22,6 +22,8 @@ The source code of the projects is basically divided into two packages:
     - `KafkaDataAdapter.java` implements the Data Adapter publishing the simulated flights information;
     - `ConsumerLoop.java` implements a consumer loop for the Kafka service retrieving the messages to be pushed into the Lightstreamer server.
 
+As per the Metadata adapter the demo relies on the basic functionalities provided by the ready made  [LiteralBasedProvider Metadata Adapter](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter).
+
 ## Build and Install
 
 To build and install your own version of these adapters you have two options:
@@ -62,7 +64,7 @@ The demo needs a kafka cluster where a topic with name `departuresboard-001` is 
  - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
  - Make sure that Lightstreamer Server is not running.
  - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `kafkademo` folder into the `adapters` folder of your Lightstreamer Server installation.
- - Update the `adapters.xml` file with "kafka_bootstrap_servers" of your cluster created in the previous section; to retrieve this information use the steps below:
+ - Update the `adapters.xml` file setting the "kafka_bootstrap_servers" parameter with the connection string of your cluster created in the previous section; to retrieve this information use the steps below:
     1. Open the Amazon MSK console at https://console.aws.amazon.com/msk/.
     2. Wait for the status of your cluster to become Active. This might take several minutes. After the status becomes Active, choose the cluster name. This takes you to a page containing the cluster summary.
     3. Choose View client information.
@@ -83,7 +85,7 @@ Where *bootstrap_server* is the same information retrieved in the previous secti
 
 ### Client to use with this demo
 
-As a client for this demo you can use the [Lightstreamer - DynamoDB Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript); you can follow the instructions fo the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript#install) with one addition:
+As a client for this demo you can use the [Lightstreamer - DynamoDB Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript); you can follow the instructions in the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript#install) with one addition:
 
  - change in the [src/js/const.js](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript/blob/master/src/js/const.js) file the *LS_ADAPTER_SET* to KAFKADEMO
 
