@@ -91,7 +91,7 @@ As a client for this demo you can use the [Lightstreamer - DynamoDB Demo - Web C
 
 ## See Also
 
-<!-- END RELATED_ENTRIES -->
+* Our blog post: [Virtual Airport Demo: Connecting Kafka to Lightstreamer](https://blog.lightstreamer.com/2023/03/virtual-airport-demo-connecting-kafka.html)
 
 ### Related Projects
 
