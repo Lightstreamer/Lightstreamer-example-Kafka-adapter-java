@@ -5,14 +5,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
@@ -35,8 +38,18 @@ public class DemoPublisher {
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 
+    private static HashMap<String, Integer> flight_destination = new HashMap<String, Integer>();
+
+    private static HashMap<String, String> flight_departure = new HashMap<String, String>();
+
     private static HashMap<String, Integer> flight_momentum = new HashMap<String, Integer>();
-    
+
+    private static HashMap<String, Integer> board_position = new HashMap<String, Integer>();
+
+    private static LinkedList<Integer> avl_pos = new LinkedList<Integer>();
+
+    private static final AtomicInteger counter = new AtomicInteger(0);
+
     private static List<String> destinations = Stream.of( "Seoul (ICN)",
     "Atlanta (ATL)",
     "Boston (BOS)",
@@ -80,8 +93,10 @@ public class DemoPublisher {
         Properties props = new Properties();
         props.put("bootstrap.servers", kconnstring);
         props.put("linger.ms", 1);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                org.apache.kafka.common.serialization.StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                io.confluent.kafka.serializers.KafkaJsonSerializer.class);
 
         try {
             Future<RecordMetadata> futurek;
@@ -89,7 +104,7 @@ public class DemoPublisher {
 
             calendar.setTime(sdf.parse("07:00"));
 
-            Producer<String, String> producer = new KafkaProducer<>(props);
+            Producer<String, FlightInfo> producer = new KafkaProducer<>(props);
 
             while (go) {
                 String key;
@@ -107,21 +122,29 @@ public class DemoPublisher {
                     key = itr.next();
                 }
 
-                String message = getrandominfo(key);
+                FlightInfo flightinfo = getrandominfo(key);
+                Integer intgr = board_position.get(key);
+                String my_key;
+                if (intgr == null) {
+                    int lst = avl_pos.getLast();
+                    my_key = "" + lst;
 
-                logger.info("New Message : " + message);
+                    logger.info("Recover key: " + lst);
+                } else {
+                    my_key = "" + intgr.intValue();
+                }
 
-                futurek = producer.send(new ProducerRecord<String, String>(topicname, key, message));
+                logger.info("Key : " + my_key + ", new Message : " + flightinfo.departure);
 
-                rmtdta = futurek.get();
+                flightinfo.currentTime = sdf.format(calendar.getTime());
 
-                futurek = producer.send(new ProducerRecord<String, String>(topicname, "current_time", sdf.format(calendar.getTime())));
+                futurek = producer.send(new ProducerRecord<String, FlightInfo>(topicname, my_key, flightinfo));
 
                 rmtdta = futurek.get();
 
                 logger.info("Sent message to" + rmtdta.partition());
 
-                Thread.sleep(500);
+                Thread.sleep(800);
             }
             
              producer.close();
@@ -162,40 +185,62 @@ public class DemoPublisher {
         return to;
     }
 
-    private static String getrandominfo(String key) {
-        StringBuilder builder = new StringBuilder();
+    private static FlightInfo getrandominfo(String key) {
+        FlightInfo flightinfo;
+
         int inds;
+        int indx;
+
+        String departure;
 
         if (flight_momentum.containsKey(key)) {
             inds = nextFlightStatus(flight_momentum.get(key).intValue());
+            indx = flight_destination.get(key);
+            departure = flight_departure.get(key);
         } else {
             inds = 0;
+
+            indx = random.nextInt(20);
+            flight_destination.put(key, indx);
+
+            calendar.add(Calendar.MINUTE, 3);
+            departure = sdf.format(calendar.getTime());
+            flight_departure.put(key, departure);
         }
 
         if (inds == 7) {
-            flight_momentum.remove(key);
+            inds = flight_momentum.remove(key);
+
+            Integer removed = board_position.remove(key);
+            if (removed != null) {
+                avl_pos.add(removed);
+            }
         } else {
             flight_momentum.put(key, Integer.valueOf(inds));
+
+            if (!board_position.containsKey(key)) {
+                if (avl_pos.size() > 0) {
+                    board_position.put(key, avl_pos.remove(0));
+                } else {
+                    int pos = counter.incrementAndGet();
+                    board_position.put(key, new Integer(pos));
+                }
+            }
         }
 
-        int indx = random.nextInt(20);
-        
-        String trmnl = random.nextBoolean() ? "3" : "7";
+        int trmnl = random.nextBoolean() ? 3 : 7;
 
-        calendar.add(Calendar.MINUTE, 3);
-        String departure = sdf.format(calendar.getTime());
-        
-        builder.append(status_icon.get(inds) + ' ' + destinations.get(indx))
-            .append("|")
-            .append(departure)
-            .append("|")
-            .append(trmnl)
-            .append("|")
-            .append( status_desc.get(inds))
-            .append("|")
-            .append("Lightstreamer Airlines");
+        if ((inds == 1) || (inds == 3)) {
+            calendar.add(Calendar.MINUTE, 3);
+            departure = sdf.format(calendar.getTime());
 
-        return builder.toString();
+            flight_departure.put(key, departure);
+        }
+
+        flightinfo = new FlightInfo(status_icon.get(inds) + ' ' + destinations.get(indx), departure, key, trmnl,
+                status_desc.get(inds), "Lightstreamer Airlines");
+
+        return flightinfo;
     }
     public static void main(String[] args) {
         

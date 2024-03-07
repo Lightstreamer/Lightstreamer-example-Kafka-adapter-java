@@ -49,6 +49,12 @@
       <name>Twitter repository</name>
       <url>https://maven.twttr.com/</url>
     </repository>
+
+    <!-- confluent -->
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven</url>
+    </repository>
   </repositories>
 
   <dependencies>
@@ -75,6 +81,12 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-json-serializer</artifactId>
+      <version>7.5.0</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
   
