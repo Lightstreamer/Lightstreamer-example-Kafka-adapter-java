@@ -1,28 +1,25 @@
 # Lightstreamer - Kafka Demo - Java Adapter
 
-This project includes the resources needed to develop the Data Adapter for the Lightstreamer Kafka Demo pluggable into Lightstreamer Server 
+This project includes the resources needed to develop the Data Adapter for the Lightstreamer Airport Demo pluggable into Lightstreamer Server and leveraging the [Lightstreamer Kafka Connector](https://github.com/Lightstreamer/Lightstreamer-kafka-connector).
 
 ![Infrastructure](infrastructure.png)<br>
 
 The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.
-The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic; for this demo we used as Kafka service the [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a).
+The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic.
 
-This project covers only the back-end side of the demo and in particular the code of a Data Adapter to be deployed into a Lightsreamer server and a random data generator for simulating the departures board. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java#client-to-use-with-this-demo).
+This project covers only the back-end side of the demo and in particular the configuration of the connector to be deployed into a Lightsreamer server and a random data generator for simulating the departures board information. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java#client-to-use-with-this-demo).
 
 ## Details
 
-The source code of the projects is basically divided into two packages: 
-
-- `producer`, that implements the simulator of flight information and acts as the producer versus the Kafka service. In particular the following classes are defined:
+The source code of the projects is basically contained in the `producer` package, that implements the simulator of flight information and acts as the producer versus the Kafka cluster. In particular the following classes are defined:
     - `DemoPublisher.java`, implementing the simulator generating and sending flight monitor data to a Kafka topic;
+    - `FlightInfo.java`, class that defines all the flight-related information to be displayed on the departure board, and will be serialized into JSON format as a Kafka message.
 
 <br>
 
-- `adapters`, that implements the Lightstreamer in-process adapters based on the [Java In-Process Adapter API ](https://sdk.lightstreamer.com/ls-adapter-inprocess/7.3.1/api/index.html). in particular:
-    - `KafkaDataAdapter.java` implements the Data Adapter publishing the simulated flights information;
-    - `ConsumerLoop.java` implements a consumer loop for the Kafka service retrieving the messages to be pushed into the Lightstreamer server.
-
-As per the Metadata adapter the demo relies on the basic functionalities provided by the ready made  [LiteralBasedProvider Metadata Adapter](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter).
+In the `producer` folder wefound the configuration files needed to configure the Lightstreamer Kafka Connector:
+     - `adapters.xml`, in  this file, parameters are essentially configured for the connector to consume messages from Kafka, and the mapping between Kafka cluster topics and Lightstreamer items that the client will subscribe to is defined. In the specific case of this demo, message serialization occurs via JSON objects, and therefore, the mapping of fields from the received JSON object to the Lightstreamer item fields to be sent to clients is also defined.
+     - `log4j.properties`,
 
 ## Build and Install
 
