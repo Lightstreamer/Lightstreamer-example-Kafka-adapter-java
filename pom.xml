@@ -11,8 +11,8 @@
   <url>http://maven.apache.org</url>
 
   <properties>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.9</maven.compiler.target>
+    <maven.compiler.source>1.9</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -36,7 +36,7 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>com.lightstreamer.examples.kafkademo.adapters.KafkaDataAdapter</mainClass>
+          <mainClass>com.lightstreamer.examples.kafkademo.producer.DemoPublisher</mainClass>
         </configuration>
       </plugin>
          
@@ -58,12 +58,6 @@
   </repositories>
 
   <dependencies>
-    <!-- https://mvnrepository.com/artifact/com.lightstreamer/ls-adapter-inprocess -->
-    <dependency>
-      <groupId>com.lightstreamer</groupId>
-      <artifactId>ls-adapter-inprocess</artifactId>
-      <version>7.3.1</version>
-    </dependency>
     <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

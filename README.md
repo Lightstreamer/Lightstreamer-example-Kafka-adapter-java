@@ -2,9 +2,9 @@
 
 This project includes the resources needed to develop the Data Adapter for the Lightstreamer Airport Demo pluggable into Lightstreamer Server and leveraging the [Lightstreamer Kafka Connector](https://github.com/Lightstreamer/Lightstreamer-kafka-connector).
 
-![Infrastructure](infrastructure.png)<br>
+![Infrastructure](quickstart-diagram.png)<br>
 
-The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.
+The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.<br>
 The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic.
 
 This project covers only the back-end side of the demo and in particular the configuration of the connector to be deployed into a Lightsreamer server and a random data generator for simulating the departures board information. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java#client-to-use-with-this-demo).
@@ -12,19 +12,38 @@ This project covers only the back-end side of the demo and in particular the con
 ## Details
 
 The source code of the projects is basically contained in the `producer` package, that implements the simulator of flight information and acts as the producer versus the Kafka cluster. In particular the following classes are defined:
-    - `DemoPublisher.java`, implementing the simulator generating and sending flight monitor data to a Kafka topic;
-    - `FlightInfo.java`, class that defines all the flight-related information to be displayed on the departure board, and will be serialized into JSON format as a Kafka message.
+- `DemoPublisher.java`, implementing the simulator generating and sending flight monitor data to a Kafka topic; the messages sent to Kafka will also have a key composed simply of a number representing the row in the table to which the information refers.
+- `FlightInfo.java`, class that defines all the flight-related information to be displayed on the departure board, and will be serialized into JSON format as a Kafka message.
 
 <br>
 
-In the `producer` folder wefound the configuration files needed to configure the Lightstreamer Kafka Connector:
-     - `adapters.xml`, in  this file, parameters are essentially configured for the connector to consume messages from Kafka, and the mapping between Kafka cluster topics and Lightstreamer items that the client will subscribe to is defined. In the specific case of this demo, message serialization occurs via JSON objects, and therefore, the mapping of fields from the received JSON object to the Lightstreamer item fields to be sent to clients is also defined.
-     - `log4j.properties`,
+In the `resources` folder we found the configuration files needed to configure the Lightstreamer Kafka Connector:
+- `adapters.xml`, in  this file, parameters are essentially configured for the connector to consume messages from Kafka, and the mapping between Kafka cluster topics and Lightstreamer items that the client will subscribe to is defined. In the specific case of this demo, message serialization occurs via JSON objects, and therefore, the mapping of fields from the received JSON object to the Lightstreamer item fields to be sent to clients is also defined. In particular, the section defining the field mapping is this one:
+```xml
+  <data_provider name="AirpotDemo">
+    ...
+    
+    <!-- Extraction of the record key mapped to the field "key". -->
+    <param name="field.key">#{KEY}</param>
+
+    <!-- Extraction of the record value mapped to the field "value". -->
+    <!-- Extraction of the record value mapped to the field "value". -->
+    <param name="field.destination">#{VALUE.destination}</param>
+    <param name="field.departure">#{VALUE.departure}</param>
+    <param name="field.flightNo">#{VALUE.flightNo}</param>
+    <param name="field.terminal">#{VALUE.terminal}</param>
+    <param name="field.status">#{VALUE.status}</param>
+    <param name="field.airline">#{VALUE.airline}</param>
+    <param name="field.currentTime">#{VALUE.currentTime}</param>
+
+    ...
+  </data_provider>
+```
+- `log4j.properties`, in this file, you'll find the specific configuration for the Lightstreamer Kafka Connector log, to obtain details about all interactions with the Kafka cluster and the message retrieval operations, along with their routing to the subscribed items in the Lightstreamer server. In this demo, a specific log file named `airport.log` is configured, destined for the same `logs` folder as the other Lightstreamer logs.
 
 ## Build and Install
 
-To build and install your own version of these adapters you have two options:
-either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and build (recommended) or gather the necessary jars yourself and build it manually.
+To build and install your own version of these adapters you have two options: either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and build (recommended) or gather the necessary jars yourself and build it manually.
 For the sake of simplicity only the Maven case is detailed here.
 
 ### Maven
@@ -40,60 +59,49 @@ If the task completes successfully it also creates a `target` folder, with the j
 
 ## Setting up the Demo
 
-The demo needs a kafka cluster where a topic with name `departuresboard-001` is defined. You can use a kafka server installed locally or any of the services offered in the cloud; for this demo we used [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a) and this is exactly what the next steps refer to. 
+The demo needs a kafka cluster where a topic with name `Flights` is created. You can use either a locally installed instance of Kafka in your environment, starting perhaps from the latest release of Apache Kafka as explained [here](https://kafka.apache.org/quickstart), or an installation of Confluent Platform (you can find a quickstart [here](https://docs.confluent.io/platform/current/platform-quickstart.html)). Alternatively, you can use one of the cloud services that offer fully managed services such as [Confluent Cloud](https://docs.confluent.io/cloud/current/get-started/index.html) or [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a).
+Based on this choice, you will need to modify the 'adapters.xml' files accordingly, particularly the 'bootstrap server' parameter. The proposed configuration assumes a local Kafka installation that does not require authentication or the use of TLS communication:
+```xml
+  <data_provider name="AirpotDemo">
+        <adapter_class>com.lightstreamer.kafka_connector.adapters.KafkaConnectorDataAdapter</adapter_class>
 
-### AWS MSK
+        <!-- The Kafka cluster address -->
+        <param name="bootstrap.servers">localhost:9092</param>
 
- - Sign-in to the AWS Console in the account you want to create your cluster in 
- - Browse to the MSK create cluster wizard to start the creation 
- - Since the limited needs of the demo, you can choose options for a cluster with only 2 brokers, one per availability zone, and of small size (kafka.t3.small)
- - Choose Unauthenticated access option and allow Plaintext connection
- - We choose a cluster configuration such as the *MSK default configuration* but a single add; since in the demo only actually real-time events are managed we choose a very short retention time for messages:
+    ...
 
-```sh 
-  log.retention.ms = 2000
+  </data_provider>
 ```
-
- - [Create a topic](https://docs.aws.amazon.com/msk/latest/developerguide/create-topic.html) with name `departuresboard-001`.
+However, in more complex scenarios where authentication and TLS need to be set up, please refer to the Lightstreamer Kafka Connector guide [here](https://github.com/Lightstreamer/Lightstreamer-kafka-connector?tab=readme-ov-file#broker-authentication-parameters) and [here](https://github.com/Lightstreamer/Lightstreamer-kafka-connector?tab=readme-ov-file#encryption-parameters).
 
 ### Lightstreamer Server
 
  - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
  - Make sure that Lightstreamer Server is not running.
  - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `kafkademo` folder into the `adapters` folder of your Lightstreamer Server installation.
- - Update the `adapters.xml` file setting the "kafka_bootstrap_servers" parameter with the connection string of your cluster created in the previous section; to retrieve this information use the steps below:
-    1. Open the Amazon MSK console at https://console.aws.amazon.com/msk/.
-    2. Wait for the status of your cluster to become Active. This might take several minutes. After the status becomes Active, choose the cluster name. This takes you to a page containing the cluster summary.
-    3. Choose View client information.
-    4. Copy the connection string for plaintext authentication.
- - [Optional] Customize the logging settings in log4j configuration file `kafkademo/classes/log4j2.xml`.
+ - Update the `adapters.xml` settings as discussed in the previous section.
+ - [Optional] Customize the logging settings in log4j configuration file `log4j.properties`.
  - In order to avoid authentication stuff the machine running the Lightstreamer server must be in the same vpc of the MSK cluster.
  - Launch Lightstreamer Server.
 
 ### Simulator Producer loop
 
-From the `LS_HOME\adapters\kafkademo\lib` folder you can start the simulator producer loop with this command 
+From the home of this project you can start the simulator producer loop with this command 
 
 ```sh 
-  $java -cp example-kafka-adapter-java-0.0.1-SNAPSHOT.jar:kafka-clients-3.2.2.jar:log4j-api-2.18.0.jar:log4j-core-2.18.0.jar:lz4-java-1.8.0.jar:snappy-java-1.1.8.4:slf4j-api-2.0.1.jar com.lightstreamer.examples.kafkademo.producer.DemoPublisher boostrap_server topic_name
+  $mvn exec:java localhost:9092 Flights
 ```
-
-Where *bootstrap_server* is the same information retrieved in the previous section and topic name is `departuresboard-001`.
+ 
+Where *localhost:9092* is the bootstrap string for connecting to kafka and for which the same considerations madea bove apply. `Flights` is the topic name used to produce the mesage with simulated flights info.
 
 ### Client to use with this demo
 
-As a client for this demo you can use the [Lightstreamer - DynamoDB Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript); you can follow the instructions in the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript#install) with one addition:
-
- - change in the [src/js/const.js](https://github.com/Lightstreamer/Lightstreamer-example-DynamoDB-client-javascript/blob/master/src/js/const.js) file the *LS_ADAPTER_SET* to KAFKADEMO
+As a client for this demo you can use the [Lightstreamer - Airpot Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-Airport-client-javascript); you can follow the instructions in the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-Irport-client-javascript#install).
 
 ## See Also
 
-* Our blog post: [Virtual Airport Demo: Connecting Kafka to Lightstreamer](https://blog.lightstreamer.com/2023/03/virtual-airport-demo-connecting-kafka.html)
-
-### Related Projects
-
-* [LiteralBasedProvider Metadata Adapter](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#literalbasedprovider-metadata-adapter)
+* [Lightstreamer Kafka Connector](https://github.com/Lightstreamer/Lightstreamer-kafka-connector)
 
 ## Lightstreamer Compatibility Notes
 
-- Compatible with Lightstreamer SDK for Java In-Process Adapters since 7.3.
+- Compatible with Lightstreamer SDK for Java In-Process Adapters since 7.4.

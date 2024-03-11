@@ -89,7 +89,7 @@ public class DemoPublisher {
     "\uD83D\uDED1",
     "\uD83D\uDED1").collect(Collectors.toList());
 
-    private static void kafkaproducerloop() {
+    private static void kafkaproducerloop() throws InterruptedException {
         Properties props = new Properties();
         props.put("bootstrap.servers", kconnstring);
         props.put("linger.ms", 1);
@@ -98,59 +98,63 @@ public class DemoPublisher {
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 io.confluent.kafka.serializers.KafkaJsonSerializer.class);
 
-        try {
-            Future<RecordMetadata> futurek;
-            RecordMetadata rmtdta;
+        while (go) {
+            try {
+                Future<RecordMetadata> futurek;
+                RecordMetadata rmtdta;
 
-            calendar.setTime(sdf.parse("07:00"));
+                calendar.setTime(sdf.parse("07:00"));
 
-            Producer<String, FlightInfo> producer = new KafkaProducer<>(props);
+                Producer<String, FlightInfo> producer = new KafkaProducer<>(props);
 
-            while (go) {
-                String key;
+                while (go) {
+                    String key;
 
-                if ( flight_momentum.size() < 10 ) {
-                    int tmp = random.nextInt(900) + 10;
-                
-                    key = "LS" + tmp;
-                } else {
-                    int fd = random.nextInt(10);
-                    Iterator<String> itr = flight_momentum.keySet().iterator();
-                    for (int k=0; k < fd; k++) {
-                        itr.next();
+                    if (flight_momentum.size() < 10) {
+                        int tmp = random.nextInt(900) + 10;
+
+                        key = "LS" + tmp;
+                    } else {
+                        int fd = random.nextInt(10);
+                        Iterator<String> itr = flight_momentum.keySet().iterator();
+                        for (int k = 0; k < fd; k++) {
+                            itr.next();
+                        }
+                        key = itr.next();
                     }
-                    key = itr.next();
+
+                    FlightInfo flightinfo = getrandominfo(key);
+                    Integer intgr = board_position.get(key);
+                    String my_key;
+                    if (intgr == null) {
+                        int lst = avl_pos.getLast();
+                        my_key = "" + lst;
+
+                        logger.info("Recover key: " + lst);
+                    } else {
+                        my_key = "" + intgr.intValue();
+                    }
+
+                    logger.info("Key : " + my_key + ", new Message : " + flightinfo.departure);
+
+                    flightinfo.currentTime = sdf.format(calendar.getTime());
+
+                    futurek = producer.send(new ProducerRecord<String, FlightInfo>(topicname, my_key, flightinfo));
+
+                    rmtdta = futurek.get();
+
+                    logger.info("Sent message to" + rmtdta.partition());
+
+                    Thread.sleep(800);
                 }
 
-                FlightInfo flightinfo = getrandominfo(key);
-                Integer intgr = board_position.get(key);
-                String my_key;
-                if (intgr == null) {
-                    int lst = avl_pos.getLast();
-                    my_key = "" + lst;
+                producer.close();
 
-                    logger.info("Recover key: " + lst);
-                } else {
-                    my_key = "" + intgr.intValue();
-                }
-
-                logger.info("Key : " + my_key + ", new Message : " + flightinfo.departure);
-
-                flightinfo.currentTime = sdf.format(calendar.getTime());
-
-                futurek = producer.send(new ProducerRecord<String, FlightInfo>(topicname, my_key, flightinfo));
-
-                rmtdta = futurek.get();
-
-                logger.info("Sent message to" + rmtdta.partition());
-
-                Thread.sleep(800);
+            } catch (Exception e) {
+                logger.error("Error during producer loop: " + e.getMessage());
             }
-            
-             producer.close();
 
-        } catch (Exception e) {
-            logger.error("Error during producer loop: " + e.getMessage());
+            Thread.sleep(2500);
         }
     }
 
@@ -247,7 +251,7 @@ public class DemoPublisher {
         logger.info("Start Kafka demo producer: " + args.length);
 
         if (args.length < 2 ) {
-            logger.error("Missing arguments bootstrap-servers topioc-name");
+            logger.error("Missing arguments: [bootstrap-servers] [topioc-name]");
             return ;
         }
 
@@ -257,7 +261,11 @@ public class DemoPublisher {
         Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                kafkaproducerloop();
+                try {
+                    kafkaproducerloop();
+                } catch (InterruptedException e) {
+                    logger.error("Unexpected error running the producer loop: " + e.getMessage());
+                }
             }
         });  
         t1.start();
@@ -274,7 +282,6 @@ public class DemoPublisher {
         } catch (Exception e) {
             // ...
         }
-        
 
         logger.info("End Kafka demo producer.");
     }
