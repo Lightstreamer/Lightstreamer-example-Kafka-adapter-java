@@ -2,7 +2,7 @@
 
 This project includes the resources needed to develop the Data Adapter for the Lightstreamer Airport Demo pluggable into Lightstreamer Server and leveraging the [Lightstreamer Kafka Connector](https://github.com/Lightstreamer/Lightstreamer-kafka-connector).
 
-![Infrastructure](quickstart-diagram.png)<br>
+![Infrastructure](infrastructure.png)<br>
 
 The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.<br>
 The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic.
@@ -78,7 +78,7 @@ However, in more complex scenarios where authentication and TLS need to be set u
 
  - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
  - Make sure that Lightstreamer Server is not running.
- - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `kafkademo` folder into the `adapters` folder of your Lightstreamer Server installation.
+ - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `airport_demo` folder into the `adapters` folder of your Lightstreamer Server installation.
  - Update the `adapters.xml` settings as discussed in the previous section.
  - [Optional] Customize the logging settings in log4j configuration file `log4j.properties`.
  - In order to avoid authentication stuff the machine running the Lightstreamer server must be in the same vpc of the MSK cluster.
