@@ -80,7 +80,6 @@ However, in more complex scenarios where authentication and TLS need to be set u
  - Deploy a fresh installation of the Lightstreamer Kafka Connector following the instructions provided [here](https://github.com/Lightstreamer/Lightstreamer-kafka-connector?tab=readme-ov-file#deploy).
  - Replace the `adapters.xml` file with the one of this project and in the case update settings as discussed in the previous section.
  - [Optional] Customize the logging settings in log4j configuration file `log4j.properties`.
- - In order to avoid authentication stuff the machine running the Lightstreamer server must be in the same vpc of the MSK cluster.
  - Launch Lightstreamer Server.
 
 ### Simulator Producer loop
@@ -91,7 +90,8 @@ From the home of this project you can start the simulator producer loop with thi
   $mvn exec:java localhost:9092 Flights
 ```
  
-Where *localhost:9092* is the bootstrap string for connecting to Kafka and for which the same considerations madea bove apply. `Flights` is the topic name used to produce the mesage with simulated flights info.
+Where *localhost:9092* is the bootstrap string for connecting to Kafka and for which the same considerations made above apply.
+`Flights` is the topic name used to produce the mesages with simulated flights info.
 
 ### Client to use with this demo
 
