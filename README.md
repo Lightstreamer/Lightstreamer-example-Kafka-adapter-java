@@ -59,7 +59,7 @@ If the task completes successfully it also creates a `target` folder, with the j
 
 ## Setting up the Demo
 
-The demo needs a kafka cluster where a topic with name `Flights` is created. You can use either a locally installed instance of Kafka in your environment, starting perhaps from the latest release of Apache Kafka as explained [here](https://kafka.apache.org/quickstart), or an installation of Confluent Platform (you can find a quickstart [here](https://docs.confluent.io/platform/current/platform-quickstart.html)). Alternatively, you can use one of the cloud services that offer fully managed services such as [Confluent Cloud](https://docs.confluent.io/cloud/current/get-started/index.html) or [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a).
+The demo needs a Kafka cluster where a topic with name `Flights` is created. You can use either a locally installed instance of Kafka in your environment, starting perhaps from the latest release of Apache Kafka as explained [here](https://kafka.apache.org/quickstart), or an installation of Confluent Platform (you can find a quickstart [here](https://docs.confluent.io/platform/current/platform-quickstart.html)). Alternatively, you can use one of the cloud services that offer fully managed services such as [Confluent Cloud](https://docs.confluent.io/cloud/current/get-started/index.html) or [AWS MSK](https://aws.amazon.com/msk/?nc2=type_a).
 Based on this choice, you will need to modify the 'adapters.xml' files accordingly, particularly the 'bootstrap server' parameter. The proposed configuration assumes a local Kafka installation that does not require authentication or the use of TLS communication:
 ```xml
   <data_provider name="AirpotDemo">
@@ -76,10 +76,10 @@ However, in more complex scenarios where authentication and TLS need to be set u
 
 ### Lightstreamer Server
 
- - Download Lightstreamer Server (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
+ - Download Lightstreamer Server version 7.4.2 or later (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the GETTING_STARTED.TXT file in the installation home directory.
  - Make sure that Lightstreamer Server is not running.
- - Get the deploy.zip file from the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java/releases), unzip it, and copy the `airport_demo` folder into the `adapters` folder of your Lightstreamer Server installation.
- - Update the `adapters.xml` settings as discussed in the previous section.
+ - Deploy a fresh installation of the Lightstreamer Kafka Connector following the instructions provided [here](https://github.com/Lightstreamer/Lightstreamer-kafka-connector?tab=readme-ov-file#deploy).
+ - Replace the `adapters.xml` file with the one of this project and in the case update settings as discussed in the previous section.
  - [Optional] Customize the logging settings in log4j configuration file `log4j.properties`.
  - In order to avoid authentication stuff the machine running the Lightstreamer server must be in the same vpc of the MSK cluster.
  - Launch Lightstreamer Server.
@@ -92,7 +92,7 @@ From the home of this project you can start the simulator producer loop with thi
   $mvn exec:java localhost:9092 Flights
 ```
  
-Where *localhost:9092* is the bootstrap string for connecting to kafka and for which the same considerations madea bove apply. `Flights` is the topic name used to produce the mesage with simulated flights info.
+Where *localhost:9092* is the bootstrap string for connecting to Kafka and for which the same considerations madea bove apply. `Flights` is the topic name used to produce the mesage with simulated flights info.
 
 ### Client to use with this demo
 
