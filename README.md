@@ -7,7 +7,7 @@ This project includes the resources needed to develop the Data Adapter for the L
 The Demo simulates a basic departures board with a few rows which represent information on flights departing from a hypothetical airport.<br>
 The data are simulated with a random generator provided in this project and sent to a [Kafka](https://kafka.apache.org/) topic.
 
-This project covers only the back-end side of the demo and in particular the configuration of the connector to be deployed into a Lightsreamer server and a random data generator for simulating the departures board information. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java#client-to-use-with-this-demo).
+This project covers only the back-end side of the demo and in particular the configuration of the connector to be deployed into a Lightsreamer server and a random data generator for simulating the departures board information. For a client that displays this data, please refer to the section below: [Client to use with this demo](https://github.com/Lightstreamer/Lightstreamer-example-Kafka-adapter-java?tab=readme-ov-file#client-to-use-with-this-demo).
 
 ## Details
 
@@ -43,19 +43,19 @@ In the `resources` folder we found the configuration files needed to configure t
 
 ## Build and Install
 
-To build and install your own version of these adapters you have two options: either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and build (recommended) or gather the necessary jars yourself and build it manually.
+To build and install your own version of the simulator you have two options: either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and build (recommended) or gather the necessary jars yourself and build it manually.
 For the sake of simplicity only the Maven case is detailed here.
 
 ### Maven
 
-You can easily build the adapter jars to deploy into the Lightstreamer server using Maven through the `pom.xml` file located in the root folder of this project. As an alternative, you can use any other alternative build tool (e.g. Gradle, Ivy, etc.).
+You can easily build the jar using Maven through the `pom.xml` file located in the root folder of this project. As an alternative, you can use any other alternative build tool (e.g. Gradle, Ivy, etc.).
 
 Assuming Maven is installed and available in your path you can build the demo by running
 ```sh 
  $mvn install dependency:copy-dependencies 
 ```
 
-If the task completes successfully it also creates a `target` folder, with the jar of the adapter and all the needed dependencies.
+If the task completes successfully it also creates a `target` folder, with the jar of the simulator and all the needed dependencies.
 
 ## Setting up the Demo
 
@@ -96,7 +96,7 @@ Where *localhost:9092* is the bootstrap string for connecting to kafka and for w
 
 ### Client to use with this demo
 
-As a client for this demo you can use the [Lightstreamer - Airpot Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-Airport-client-javascript); you can follow the instructions in the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-Irport-client-javascript#install).
+As a client for this demo you can use the [Lightstreamer - Airpot Demo - Web Client](https://github.com/Lightstreamer/Lightstreamer-example-AirportDemo-javascript); you can follow the instructions in the [Install section](https://github.com/Lightstreamer/Lightstreamer-example-AirportDemo-javascript?tab=readme-ov-file#install).
 
 ## See Also
 
