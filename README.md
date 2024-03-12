@@ -103,4 +103,4 @@ As a client for this demo you can use the [Lightstreamer - Airpot Demo - Web Cli
 
 ## Lightstreamer Compatibility Notes
 
-- Compatible with Lightstreamer SDK for Java In-Process Adapters since 7.4.
+- Compatible with Lightstreamer SDK for Java In-Process Adapters since 7.4.2.
