@@ -27,7 +27,6 @@ In the `resources` folder we found the configuration files needed to configure t
     <param name="field.key">#{KEY}</param>
 
     <!-- Extraction of the record value mapped to the field "value". -->
-    <!-- Extraction of the record value mapped to the field "value". -->
     <param name="field.destination">#{VALUE.destination}</param>
     <param name="field.departure">#{VALUE.departure}</param>
     <param name="field.flightNo">#{VALUE.flightNo}</param>
