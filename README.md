@@ -1,5 +1,13 @@
 # Lightstreamer - Kafka Demo - Java Adapter
 
+**
+This project is no longer maintained.
+Please refer to the `examples/airport-demo` section of the main Lightstreamer Kafka Connector project [here](https://github.com/Lightstreamer/Lightstreamer-kafka-connector/tree/main/examples/airport-demo).
+**
+
+<br/>
+<br/>
+
 This project includes the resources needed to develop the Data Adapter for the Lightstreamer Airport Demo pluggable into Lightstreamer Server and leveraging the [Lightstreamer Kafka Connector](https://github.com/Lightstreamer/Lightstreamer-kafka-connector).
 
 ![Infrastructure](infrastructure.png)<br>
